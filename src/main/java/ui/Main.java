@@ -11,8 +11,8 @@ import static spark.Spark.post;
 
 public class Main {
 
-    public static final String ACCOUNT_SID = "AC1c1a5e23709429cc3f5c90217b31dcaa";
-    public static final String AUTH_TOKEN = "9b53ea7f70a750552c0a1729ad343016";
+    public static final String ACCOUNT_SID = "HIDDEN";
+    public static final String AUTH_TOKEN = "HIDDEN";
     public static parser.SMSParser parserSMS;
 
     public static void main(String[] args) {
