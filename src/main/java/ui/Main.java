@@ -1,7 +1,6 @@
 package ui;
 
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.*;
 import com.twilio.Twilio;
 import com.twilio.twiml.MessagingResponse;
 import com.twilio.twiml.messaging.Body;
@@ -10,27 +9,38 @@ import com.twilio.twiml.messaging.Message;
 import static spark.Spark.get;
 import static spark.Spark.post;
 
+
 public class Main {
 
-    public static final String ACCOUNT_SID = "AC1c1a5e23709429cc3f5c90217b31dcaa";
-    public static final String AUTH_TOKEN = "e499466ce5bbf51126404bca4207cb96";
+    public static final String ACCOUNT_SID = "Hidden";
+    public static final String AUTH_TOKEN = "Hidden";
     public static SMSParser parserSMS;
     public static final GpioController gpio = GpioFactory.getInstance();
+    public static GpioPinDigitalOutput myLed;
 
     public static void main(String[] args) {
         parserSMS = new SMSParser();
+        // Initializing LED at GPIO 4
+        myLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04,   // PIN NUMBER
+                "led",           // PIN FRIENDLY NAME (optional)
+                PinState.LOW);      // PIN STARTUP STATE (optional)
+        myLed.setShutdownOptions(true, PinState.LOW, PinPullResistance.OFF);
+        parserSMS.parse("led add");
+        System.out.println("LED Initialized (Blink once) " + myLed.blink(1, 100));
+
+        // Init with Twilio
         Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-        get("/", (req, res) -> "Hello Web");
+        get("/", (req, res) -> "Nick's smart home, please kindly steer away.");
 
         post("/sms", (req, res) -> {
-            System.out.println(req.queryMap("Body").value());
             res.type("application/xml");
-
             try {
-                parserSMS.parse(req.queryMap("Body").value());
-            } catch (IllegalArgumentException e) {Body body = new Body
-                    .Builder(e.getMessage())
-                    .build();
+                parserSMS.parse(req.queryMap("Body").value().trim());
+
+            } catch (IllegalArgumentException e) {
+                Body body = new Body
+                        .Builder(e.getMessage())
+                        .build();
                 Message sms = new Message
                         .Builder()
                         .body(body)
@@ -43,7 +53,7 @@ public class Main {
                 return twiml.toXml();
             }
             Body body = new Body
-                    .Builder("Success!")
+                    .Builder("Your " + SMSParser.getTermOne() + " is now " + SMSParser.getTermTwo())
                     .build();
             Message sms = new Message
                     .Builder()

@@ -1,23 +1,17 @@
 package model;
 
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.RaspiPin;
-
 import java.util.Calendar;
+import java.util.Objects;
 
-import static ui.Main.gpio;
+import static ui.Main.myLed;
+
 
 public class SmartDevice {
     private String deviceName;
     private Status parsedStatus;
     private Calendar offTime;
-    private GpioPinDigitalOutput myLed;
 
     public SmartDevice(String deviceName) {
-        myLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04,   // PIN NUMBER
-                "My LED",           // PIN FRIENDLY NAME (optional)
-                PinState.LOW);      // PIN STARTUP STATE (optional)
         this.deviceName = deviceName;
         parsedStatus = Status.OFF;
         offTime = null;
@@ -40,15 +34,28 @@ public class SmartDevice {
         return parsedStatus;
     }
 
-    public Calendar getOffTime() {
-        return offTime;
-    }
-
     public void updateDevice() {
         if (getStatus() == Status.ON) {
-            myLed.high();
+            if (deviceName.equals("led")) {
+                myLed.high();
+            }
         } else if (getStatus() == Status.OFF) {
-            myLed.low();
+            if (deviceName.equals("led")) {
+                myLed.low();
+            }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SmartDevice that = (SmartDevice) o;
+        return Objects.equals(deviceName, that.deviceName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceName);
     }
 }
